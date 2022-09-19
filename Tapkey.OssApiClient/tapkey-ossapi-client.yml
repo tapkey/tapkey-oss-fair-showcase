@@ -1,0 +1,607 @@
+openapi: 3.0.3
+info:
+  version: 1.0.3-tk20220726
+  title: OSS Mobile Access Interface A - Synchronization API
+  description: |
+    A secure communication protocol between a _Host System_ (also referred to as access control system) and a _Mobile Credential Provider_ (MCP) _Service Backend_.
+    
+    ## General Comments
+    In some cases the details of this document might differ from related text document (OSS-MA Interface A.pdf). In such cases (e.g. encoded format) this OpenAPI specification document wins over the text document.
+    
+    ## Implementation Details
+
+    ### Credential IDs
+    Credential IDs are represented as byte arrays consisting of exactly 10 bytes. Removing leading zeros is not allowed.
+    
+    ### Time Zone Handling
+    Values of format `date-time` are encoded according to the OpenAPI standard. If not specified differently, they may be specified either as UTC value, by appending the `Z` character at the end of the string or as local time by specifying no time-zone information. If specified in local time, the value refers to the respective door's time zone. Values specifying a time zone indication other than `Z` are not allowed.
+    
+    Note that a door's time zone can change over time (the door may get a different time zone assigned and the time zone itself can change as well). It's up to the MCP and the lock vendor how to deal with such changes. It's therefore recommended to specify date-times in UTC wherever possible.
+    
+    E.g.
+    * Legal UTC value: `2022-07-31T10:20Z`
+    * Legal local time value: `2022-07-31T10:20`
+    * Illegal value: `2022-07-31T10:20+00:00`
+    
+    ### BCD-encoded Date/Time Values
+    BCD-encoded date/time values (i.e. in context of extension tag 1) don't have a means of specifying the time zone to use according to OSS-SO. By default they refer to the door's local time. In context of this interface the following extended format applies: To indicate that a BCD-encoded date-time value refers to UTC, an octet value of `0xff` may be appended to the binary data before base64 encoding.
+    
+    Note that BCD-encoded values, just like any other binary data, are encoded as base64.
+    
+    Examples:
+    * `0x202207311020FF` refers to the same date-time value as `2022-07-31T10:20Z` and is encoded as `ICIHMRAg/w==`.
+    * `0x202207311020` refers to the same date-time value as `2022-07-31T10:20` and is encoded as `ICIHMRAg`.
+
+    
+    ### Time Values
+    Values of format `time` are encoded in the format `HH:mm[:ss]` in line with [RFC3339](https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14).
+    
+    Note: According to _RFC3339_ a time value cannot refer to 0:00 the next day, i.e. a value of `24:00:00` is not allowed. In cases where a value of `24:00` might be required (i.e. in the _OssScheduleWeekPeriod.validTo_ property), this API therefore accepts null values and interprets them as 0:00 next day.
+    
+    Examples:
+    * `00:00`: legal
+    * `12:34:00`: legal
+    * `24:00:00`: illegal
+
+    ### Binary Data
+    In correspondence with the OpenAPI specification all values of type `string` and format `binary` use base64 encoding.
+    
+    ### Concurrency and Atomicy
+    Requests that are modifying entity state, like _update-credential_, may be split up into multiple independent operations by the service backend that may not be executed as a single atomic operation. As one conesquence concurrent operations targeting  the same entities may leave the system in an undefined state. For that reason it's suggested that the host system makes sure, that no concurrent requests are sent to this API. In cases where concurrent requests cannot be avoided, the service backend shall always allow returning to a defined state by repeating failed operations.
+    
+tags:
+  - name: Info
+    description: |
+      Information will be exchanged to establish with API Version / Services interact. 
+  - name: Credential data
+    description: |
+      A credential contains the OSS SO info, data and optionally a revocation list and extension defining the access rights for one credential ID.
+  - name: Revocationlist
+    description: |
+      A list of blocked credentials with the correspondingexpiration dates.
+  - name: Events
+    description: |
+      A list of events. A possible event is ie. an access event or a notification that the battery is low.
+paths:
+  /service-info:
+    post:
+      summary: Contains information about the host. This includes a description, the version of the application, and the API version. This is the only call that works without authentication.
+      description: |
+        The content of the sync info request will describe the host system with a unique description and a version. The service back-end will respond with a unique service description and a version. The main purpose of this request is to establish a connection, validate the identity and supported versions of the participants.
+        
+        One credential ID can be mapped to exactly one identifier and vice versa.
+      tags:
+        - Info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OssSyncInfoSyncRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssSyncInfoSyncResponse'
+  /map-identity:
+    post:
+      summary: Map an identity to credentialId
+      description: |
+        Map an identity provider/identity pair to a credentialId for use in subsequent requests.
+        
+        Each credential id may be mapped to exactly one identity provider/identity pair at any given time. On the other hand, depending on the service provider, multiple credential ids may be mapped to a single identity provider/identity pair.
+        
+        A credential's mapped identity may be changed by sending a `map-identity` with an updated mapping. This will automatically delete the old mapping if one exists. Similarly a credential may be deleted by sending a request not specifying an identity value.
+        
+        Both, changing a credential's identity as well as deleting a mapping requires that the credential is empty. I.e. a credential can be emptied by updating it while specifying no profiles or by revoking it.
+      security:
+        - apiKey: []
+      tags:
+        - Credential data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OssMapIdentitySyncRequest'
+      responses:
+        '200':
+          description: |
+            The following status codes are used:
+            * Ok: The operation was completed as requested.
+            * NothingToDo: The mapping already exists. To implement idempotency, a host system may treat this return value just like `Ok`.
+            * BadRequest: The request is invalid, e.g. a conflicting mapping exists (same credential id but different identity or vice versa).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssMapIdentitySyncResponse'
+        '401':
+          description: No Authentication
+  /update-credential:
+    post:
+      summary: Update one credential in the context of a single site.
+      description: |
+        The credential data will contain the full credential OSS SO info, data, in the context of a single site. The customer extension data is optional. This request will be called when a credential is created or modified and will contain the data for one credential ID in the context of one site.
+        
+        If one credential should be authorized for multiple sites, then one request needs to be sent per site.
+        
+        The data contained in an update request replaces all data received in a previous request specifying the same credential ID and the same site ID. Data from other credentials and/or other sites stays unaffected.
+        
+        Update requests that refer to credential IDs that have previously been added to the revocation list, will implicitly cause the credential ID to be removed from the revocation list.
+        
+        The revocation of credentials may involve multiple operations on MCP-side. For scalability reasons the MCPs may limit the amount of work being done in a single request. In such cases the MCP may do only parts of the work requested and respond with response code `PartialResult`. The host system may continue processing by repeatedly sending the same request until a final response code is returned.
+        
+        The operation may or may not be implemented in an atomic manner. I.e. the processing of an update request that refers to multiple doors may or may not be split up into multiple atomic operations by the service backend. Therefore, if some of the operations fail, other operations may still succeed. Such situations shall be indicated in the response status via error code 'FailedInParts' and an error description giving more detailed information about what went wrong. If received, a host system may retry the operation or change the request until it succeeds.
+      security:
+        - apiKey: []
+      tags:
+        - Credential data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OssUpdateCredentialSyncRequest'
+      responses:
+        '200':
+          description: |
+            The following status codes are used:
+            * Category 2 status codes: The request was processed successfully.
+              * Ok: The operation was completed as requested.
+              * NothingToDo: The update request matches the credential's current state, so there was nothing to do. To implement idempotency, a host system may treat this return value just like `Ok`.
+              * PartialResult: The requested operation was too complex to be performed in a single request. The client may send the same request again to continue the operation.
+            * Category 4 status codes: The request is invalid and the credential has not been modified. More information is available in the error description.
+              * BadRequest: The request is invalid.
+              * NotSupported: Some of the requested functionality is not supported.
+            * Category 5 status codes: Something went wrong while processing the request. The credential may have been updated in parts. More details are available in the error description.
+              * FailedInParts: Some of the profiles have been updated while the update of others failed.
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssUpdateCredentialSyncResponse'
+        '401':
+          description: No Authentication
+  /revocation-list:
+    post:
+      summary: Transfer blocked credentials
+      description: |
+        The purpose of this call is the transfer of the list of blocked credential IDs. System integrators can choose whether they transfer all blocked entries or only those which are still valid at this point. The host system will transfer the list of backlisted entries and the service backend will respond with an empty response.
+
+        Adding a credential to the revocation list will automatically remove all access profiles from the credential. Likewise, updating a credential that has previously been added to the revocation list, will automatically remove the credential from the revocation list.
+        
+        The revocation of credentials may involve operations on MCP-side that depend on the number of credentials being revoked, the number of sites and doors, the revoked credentials are authorized for, and others. For scalability reasons the MCPs may limit the amount of work being done in a single request. In such cases the MCP may do only parts of the work requested and respond with response code `PartialResult`. The host system may continue processing by repeatedly sending the same request until a final response code is returned.
+      security:
+        - apiKey: []
+      tags:
+        - Revocationlist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OssSendRevocationlistSyncRequest'
+      responses:
+        '200':
+          description: |
+            The following status codes are used:
+            * Category 2 status codes: The request was processed successfully.
+              * Ok: The operation was completed as requested.
+              * NothingToDo: There was no new information contained in the request that was processed. To implement idempotency, a host system may treat this return value just like `Ok`.
+              * PartialResult: The requested operation was too complex to be performed in a single request. The client may send the request again to continue the operation.
+            * Category 4 status codes: The request is invalid and the credential has not been modified. More information is available in the error description.
+              * BadRequest: The request is invalid.
+            * Category 5 status codes: Something went wrong while processing the request. The credential may have been updated in parts. More details are available in the error description.
+              * FailedInParts: Some of the profiles have been updated while the update of others failed.
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssSendRevocationlistSyncResponse'
+        '401':
+          description: No Authentication
+  /reader-events:
+    post:
+      summary: Transfer event data back from doorlock to host system (renamed from *GetEvents*)
+      description: |
+        This call is used to transfer event data back from the service backend to the host system. The protocol will append the credential id to the existing OSS event structure. The host system will usually ask for all events that occurred since the last synchronization. For this purpose, each response may contain a continuation token, which can be passed to the next request in order to continue receiving subsequent events. If specified, the service backend will respond with a list of events that occurred only after the events that have been returned in the previous response. Note, that due to the distributed nature of locking systems and transport channels, the order of events as they are returned via this operation may not correspond to the chronological order they ocurred in in the field.
+        
+        The service may limit the number of events returned in a single response (e.g. it may return a maximum of 1000 events per request). If more events are available than returned in a single response, then this should be indicated by returning a status code of `PartialResult`. The host system may repeatedly invoke this operation until status code `Ok` is returned.
+        
+        It is the responsibility of the service backend to decide when or if to delete old events.
+      security:
+        - apiKey: []
+      tags:
+        - Events
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OssGetReaderMessagesSyncRequest'
+      responses:
+        '200':
+          description: |
+            * Ok: All available records have been returned.
+            * PartialResult: Only a part of the available data has been returned. The invocation may be repeated in order to get more records.
+            * BadRequest: The request is invalid, e.g. because the continuation token is invalid.
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssGetReaderMessagesSyncResponse'
+        '401':
+          description: No Authentication
+components:
+  schemas:
+    OssSyncResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+              format: int32
+              description: 'Return code of any request. Codes are 5-digit, and the first digit indicates status category; 2=ok, 4=warning (data problem), 6=error (processing problems), 8=fatal (unexpected error)'
+              example: 23000
+              enum:
+                - 20000
+                - 20001
+                - 20002
+
+                - 40000
+                - 40001
+                - 40002
+                - 40004
+
+                - 50000
+                - 50001
+                - 50002
+
+                - 80000
+
+              x-enumNames:
+                - Ok
+                - NothingToDo
+                - PartialResult
+
+                - BadRequest
+                - NotSupported
+                - LimitExceeded
+                - NotFound
+
+                - ProcessingError
+                - FailedInParts
+                - NotImplemented
+
+                - SystemError
+            description:
+              type: string
+              description: 'Description of the status in English. May contain parseable content.'
+              example: 'OK'
+          required:
+          - code
+          - description
+      required:
+      - status
+    OssSyncInfoSyncRequest:
+      type: object
+      properties:
+        syncInfoRequest:
+          $ref: '#/components/schemas/OssSyncInfoMessage'
+      required:
+        - syncInfoRequest
+    OssSyncInfoSyncResponse:
+      allOf:
+      - $ref: '#/components/schemas/OssSyncResponse'
+      - type: object
+        properties:
+          syncInfoResponse:
+            $ref: '#/components/schemas/OssSyncInfoMessage'
+    OssMapIdentitySyncRequest:
+      type: object
+      properties:
+        syncInfoRequest:
+          $ref: '#/components/schemas/OssMapIdentityRequest'
+      required:
+        - syncInfoRequest
+    OssMapIdentitySyncResponse:
+      allOf:
+      - $ref: '#/components/schemas/OssSyncResponse'
+      - type: object
+        properties:
+          syncInfoResponse:
+            $ref: '#/components/schemas/OssMapIdentityResponse'
+    OssUpdateCredentialSyncRequest:
+      type: object
+      properties:
+        updateCredentialRequest:
+          $ref: '#/components/schemas/OssUpdateCredentialRequest'
+      required:
+        - updateCredentialRequest
+    OssUpdateCredentialSyncResponse:
+      allOf:
+      - $ref: '#/components/schemas/OssSyncResponse'
+      - type: object
+        properties:
+          updateCredentialResponse:
+            $ref: '#/components/schemas/OssUpdateCredentialResponse'
+    OssSendRevocationlistSyncRequest:
+      type: object
+      properties:
+        sendRevocationlistRequest:
+          $ref: '#/components/schemas/OssSendRevocationlistRequest'
+      required:
+        - sendRevocationlistRequest
+    OssSendRevocationlistSyncResponse:
+      allOf:
+      - $ref: '#/components/schemas/OssSyncResponse'
+      - type: object
+        properties:
+          sendRevocationlistResponse:
+            $ref: '#/components/schemas/OssSendRevocationlistResponse'
+    OssGetReaderMessagesSyncRequest:
+      type: object
+      properties:
+        getReaderMessagesRequest:
+          $ref: '#/components/schemas/OssGetReaderMessagesRequest'
+      required:
+        - getReaderMessagesRequest
+    OssGetReaderMessagesSyncResponse:
+      allOf:
+      - $ref: '#/components/schemas/OssSyncResponse'
+      - type: object
+        properties:
+          getReaderMessagesResponse:
+            $ref: '#/components/schemas/OssGetReaderMessagesResponse'
+          continuationToken:
+            description: The continuation token to be passed to the next request in order to continue receiving subsequent events.
+            type: string
+    OssSyncInfoMessage:
+      type: object
+      properties:
+        description:
+          type: string
+        version:
+          type: string
+        api:
+          type: string
+    OssMapIdentityRequest:
+      type: object
+      properties:
+        identity:
+          $ref: '#/components/schemas/OssIdentity'
+        credentialId:
+          type: string
+          format: byte
+          description: The 10-byte credential ID, Base-64 encoded.
+      required:
+      - credentialId
+    OssIdentity:
+      type: object
+      properties:
+        identityProviderId:
+          type: string
+          description: The ID of the identity provider. Must be agreed between host system and MCP.
+        identity:
+          type: string
+          description: |
+            The identity, which is unique in the context of a certain identity provider, but not
+            necessarily across multiple identity providers.
+      required:
+      - identityProviderId
+      - identity
+    OssMapIdentityResponse:
+      type: object
+      # empty
+    OssUpdateCredentialRequest:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OssDataFile'
+        extension:
+          $ref: '#/components/schemas/OssExtensionFile'
+      required:
+      - data
+    OssUpdateCredentialResponse:
+      type: object
+    OssSendRevocationlistRequest:
+      type: array
+      items:
+        $ref: '#/components/schemas/OssRevocationEntry'
+    OssSendRevocationlistResponse:
+      type: object
+    OssGetReaderMessagesRequest:
+      type: object
+      properties:
+        continuationToken:
+          description: The continuation token received with the previous response. If specified, the returned events will exclude entries that have already been returned in a previous page.
+          type: string
+    OssGetReaderMessagesResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/OssEvent'
+    OssRevocationEntry:
+      type: object
+      properties:
+        credentialId:
+          type: string
+          format: byte
+          description: The 10-byte credential ID, Base-64 encoded.
+        expirationDate:
+          type: string
+          format: date-time
+          description: The expiration time in UTC. At this time the revoked credential-ID will automatically become valid again.
+      required:
+      - credentialId
+    OssDataFile:
+      type: object
+      properties:
+        credentialId:
+          type: string
+          format: byte
+          description: The 10-byte credential ID, Base-64 encoded.
+        validity:
+          type: string
+          format: date-time
+          description: The expiry date of the credential. If specified, the credential shall be denied access from this date/time on.
+        siteId:
+          type: integer
+          format: int32
+        header:
+          $ref: '#/components/schemas/OssDataFileHeader'
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/OssProfile'
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/OssSchedule'
+      required:
+      - credentialId
+      - siteId
+    OssDataFileHeader:
+      type: object
+      properties:
+        doorInfoEntries:
+          type: integer
+          format: int32
+        dateTimeSchedules:
+          type: integer
+          format: int32
+        dayIdsPerSchedule:
+          type: integer
+          format: int32
+        timePeriodsPerDayId:
+          type: integer
+          format: int32
+        extensionInfo:
+          type: integer
+          format: int32
+    OssExtensionFile:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/OssTlvEntry'
+    OssTlvEntry:
+      type: object
+      properties:
+        tag:
+          type: integer
+          format: int32
+        value:
+          type: string
+          format: byte
+      required:
+      - tag
+      - value
+    OssEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 128
+        credentialId:
+          type: string
+          format: byte
+          description: The 10-byte credential ID, Base-64 encoded.
+        timestamp:
+          type: string
+          format: date-time
+        doorId:
+          type: integer
+          format: int32
+        siteId:
+          type: integer
+          format: int32
+        eventId:
+          type: integer
+          format: int32
+        eventInfo:
+          type: integer
+          format: int32
+      required:
+      - id
+      - doorId
+      - siteId
+    OssProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        schedule:
+          type: integer
+          format: int32
+          description: Index into the array of schedules. The index is 1-relative.
+        type:
+          $ref: '#/components/schemas/OssProfileType'
+        toggleFunction:
+          $ref: '#/components/schemas/OssProfileToggleFunction'
+        unlockTime:
+          $ref: '#/components/schemas/OssProfileUnlockTime'
+      required:
+      - id
+      - type
+    OssProfileType:
+      type: string
+      enum:
+        - OSS_PROFILE_TYPE_UNSPECIFIED
+        - OSS_PROFILE_TYPE_DOOR
+        - OSS_PROFILE_TYPE_DOOR_GROUP
+    OssProfileToggleFunction:
+      type: string
+      enum:
+        - OSS_PROFILE_TOGGLE_FUNCTION_UNSPECIFIED
+        - OSS_PROFILE_TOGGLE_FUNCTION_OFF
+        - OSS_PROFILE_TOGGLE_FUNCTION_ON
+    OssProfileUnlockTime:
+      type: string
+      enum:
+        - OSS_PROFILE_UNLOCK_TIME_UNSPECIFIED
+        - OSS_PROFILE_UNLOCK_TIME_DEFAULT
+        - OSS_PROFILE_UNLOCK_TIME_EXTENDED
+    OssSchedule:
+      type: object
+      properties:
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/OssScheduleWeek'
+      required:
+      - weeks
+    OssScheduleWeek:
+      type: object
+      properties:
+        weekBits:
+          $ref: '#/components/schemas/OssWeekBits'
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/OssScheduleWeekPeriod'
+      required:
+      - weekBits
+      - periods
+    OssScheduleWeekPeriod:
+      type: object
+      properties:
+        validFrom:
+          type: string
+          format: time
+        validTo:
+          type: string
+          format: time
+          description: The time when this period ends. `null` is interpreted as 24:00 (that is 0:00 next day).
+      required:
+      - validFrom
+    OssWeekBits:
+      type: integer
+      format: int32
+      description: |
+        Bitwise representation of week. Indicies: Monday = 0, Tuesday = 1, ..., Sunday=6
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: APIKEY
+      in: header

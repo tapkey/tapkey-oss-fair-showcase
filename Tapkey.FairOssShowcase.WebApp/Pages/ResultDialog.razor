@@ -1,0 +1,76 @@
+﻿@using Microsoft.Extensions.Localization
+@using System.Globalization
+@using Tapkey.FairOssShowcase.WebApp.Model
+
+@inject IStringLocalizer<App> Localizer
+
+<MudDialog Style="margin:10px;">
+    <DialogContent>
+        @if (Result == CredentialResult.Ok || Result == CredentialResult.AlreadyRegistered) {
+            <div class="center">
+                @Localizer[(Result == CredentialResult.Ok ? "Dialog_Message_Success" : "Dialog_Message_AlreadyRegistered")]
+            </div>
+
+            <div class="center">
+                <div class="credential-title">@Localizer["Dialog_CredentialId"]</div>
+                <div class="credential-value">@CredentialId</div>
+            </div>
+
+            <div class="center" style="margin-top:20px;">@Localizer["Dialog_TapkeyApp"]</div>
+            <div class="center">
+                <a href="https://apps.apple.com/at/app/tapkey/id1172177226">
+                    <img style="height:40px;margin-top:10px;margin-right:10px;" src="@GetAppStorePicture()" />
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=net.tpky.mc">
+                    <img style="height:40px;margin-top:10px;" src="@GetPlayStorePicture()" />
+                </a>
+            </div>
+        }
+
+        @if(Result == CredentialResult.Failed) {
+            <div>
+                @Localizer["Dialog_Message_Fail"]
+            </div>
+        }
+
+        <div class="button-action">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Close">@Localizer["Button_Ok"]</MudButton>
+        </div>
+    </DialogContent>
+    
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public CredentialResult Result { get; set; }
+    [Parameter] public string CredentialId { get; set; }
+
+    private const string EnglishLanguage = "en";
+    private const string GermanLanguage = "de";
+
+    private Dictionary<string, string> GooglePicture = new Dictionary<string, string> { 
+        { EnglishLanguage,"https://dl.tapkey.com/GooglePlaystoreBadge.png"},
+        { GermanLanguage, "https://dl.tapkey.com/play_store_de-272x89.png "}
+    };
+
+    private Dictionary<string, string> ApplePicture = new Dictionary<string, string> {
+        { EnglishLanguage,"https://dl.tapkey.com/AppStoreBadge.png"},
+        { GermanLanguage, "https://dl.tapkey.com/app_store_de-272x89.png" }
+    };
+
+    public string GetPlayStorePicture() {
+        var lang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        return GooglePicture.ContainsKey(lang) ? GooglePicture[lang] : GooglePicture[EnglishLanguage];
+    }
+
+    public string GetAppStorePicture()
+    {
+        var lang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        return ApplePicture.ContainsKey(lang) ? ApplePicture[lang] : ApplePicture[EnglishLanguage];
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

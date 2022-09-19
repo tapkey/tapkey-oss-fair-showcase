@@ -1,0 +1,15 @@
+﻿.button-action {
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+.credential-title {
+    margin-top: 20px;
+    margin-bottom: 2px;
+}
+
+.credential-value {
+    font-weight: 700;
+    font-size: 20px;
+}

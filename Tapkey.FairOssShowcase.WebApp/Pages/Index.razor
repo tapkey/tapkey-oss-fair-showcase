@@ -1,0 +1,118 @@
+﻿@page "/"
+@using Microsoft.Extensions.Localization
+@using Tapkey.FairOssShowcase.WebApp.Data
+@using Tapkey.FairOssShowcase.WebApp.Model
+@using MudBlazor
+
+@inject UserService UserService
+@inject IDialogService DialogService
+@inject IStringLocalizer<App> Localizer
+
+<PageTitle>@Localizer["PageTitle"]</PageTitle>
+
+<MudPaper Class="tapkey-paper pa-4">
+    <div class="logos px-4">
+        <img src="/images/tapkey_logo.svg" class="tapkey-logo" />
+    </div>
+    <hr>
+    <div class="center">@Localizer["Subtitle_Partnership"]</div>
+    <div class="logos px-4">
+        <img src="/images/dom.png" class="dom-logo" />
+        <img src="/images/phg.png" class="phg-logo" />
+        <img src="/images/oss_logo.png" class="oss-logo" />
+    </div>
+    <div class="title">@Localizer["Title"]</div>
+    <div class="subtitle">@Localizer["Subtitle"]</div>
+    <MudForm @ref="Form" @bind-IsValid="IsValid">
+        <div class="tapkey-form">
+            <MudTextField T="string" Label="@Localizer["Label_FirstName"]" Required="true" @bind-Value="User.FirstName" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidateWhitespace(value))" />
+            <MudTextField T="string" Label="@Localizer["Label_LastName"]" Required="true" @bind-Value="User.LastName" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidateWhitespace(value))" />
+            <MudTextField T="string" HelperText="@Localizer["Label_EmailAddress_Help"]" Label="@Localizer["Label_EmailAddress"]" Required="true" @bind-Value="User.Email" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidateEmailAddress(value))" />
+            <MudTextField T="string" Label="@Localizer["Label_PhoneNumber"]" Required="true" @bind-Value="User.PhoneNumber" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidatePhoneNumber(value))" />
+            <MudTextField T="string" Label="@Localizer["Label_Company"]" Required="true" @bind-Value="User.Company" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidateWhitespace(value))" />
+            <MudTextField T="string" Label="@Localizer["Label_Position"]" Required="true" @bind-Value="User.Position" Immediate="true" ReadOnly="@Executing" Validation="@((string value) => ValidateWhitespace(value))" />
+        </div>
+        <MudCheckBox T="bool" Required="true" ReadOnly="@Executing" Style="margin: 15px;" @bind-Checked="User.AgreementCheck" RequiredError="@Localizer["Checkbox_Required"]">
+            @Localizer["Label_TermsAndConditions"]
+            <a href="@Localizer["Label_TermsAndConditions_Link_Href"]" target="_blank"> @Localizer["Label_TermsAndConditions_Link"]</a>
+        </MudCheckBox>
+        <div class="center">
+            @if (!Executing) 
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@(!IsValid)" Class="ml-auto" Style="margin-bottom:30px;" OnClick="@Submit">@Localizer["Button_Submit"]</MudButton>
+            } 
+            else 
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Style="width: 90px; margin-bottom:30px;" Disabled="true" Class="ml-auto" @onclick="Submit">
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                </MudButton>
+            }
+        </div>
+    </MudForm>
+</MudPaper>
+
+@code {
+
+    public bool IsValid { get; set; }
+    public MudForm Form { get; set; }
+    public User User { get; set; } = new User();
+
+    private bool Executing { get; set; } = false;
+
+    private async Task Submit() {
+        Executing = true;
+        await Form.Validate();
+        if (IsValid) 
+        {
+            string title = "";
+            var result = await UserService.RegisterUser(User);
+            switch (result.CredentialResult) {
+                case CredentialResult.Ok:
+                    title = Localizer["Dialog_Title_Success"];
+                    break;
+                case CredentialResult.AlreadyRegistered:
+                    title = Localizer["Dialog_Title_AlreadyRegistered"];
+                    break;
+                case CredentialResult.Failed:
+                    title = Localizer["Dialog_Title_Fail"];
+                    break;
+            }
+
+            var parameters = new DialogParameters();
+            parameters.Add("Result", result.CredentialResult);
+            parameters.Add("CredentialId", result.CredentialId);
+            var dialog = DialogService.Show<ResultDialog>(title, parameters);
+            var dialogResult = await dialog.Result;
+
+            if (result.CredentialResult == CredentialResult.Ok || result.CredentialResult == CredentialResult.AlreadyRegistered)
+            {
+                User = new User();
+                Form.Reset();
+            }
+        }
+
+        Executing = false;
+    }
+
+    private string ValidateWhitespace(string lastName) => string.IsNullOrWhiteSpace(lastName) ? Localizer["TextField_Error_EmptyOrWhitespace"] : null;
+
+    private string ValidatePhoneNumber(string phone) 
+    {
+        if (string.IsNullOrWhiteSpace(phone)) 
+        {
+            return Localizer["TextField_Error_EmptyOrWhitespace"];
+        }
+
+        return Utils.IsValidPhoneNumber(phone) ? null : Localizer["TextField_Error_InvalidPhone"];
+    }
+    
+    private string ValidateEmailAddress(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Localizer["TextField_Error_EmptyOrWhitespace"];
+        }
+
+        return Utils.IsValidEmail(email) ? null : Localizer["TextField_Error_InvalidEmail"];
+    }
+}

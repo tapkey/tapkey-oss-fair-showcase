@@ -1,0 +1,31 @@
+name: $(Date:yyyyMMdd-HHmm)$(Rev:.rr)
+
+
+pool:
+  vmImage: 'windows-2022'
+steps:
+- checkout: self
+  persistCredentials: true
+
+- task: NugetToolInstaller@1
+
+- task: DotNetCoreCLI@2
+  displayName: NuGet Restore
+  inputs:
+    command: restore
+    projects: './Tapkey.FairOssShowcase.WebApp.sln'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish Support Portal
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'Tapkey.FairOssShowcase.WebApp/Tapkey.FairOssShowcase.WebApp.csproj'
+    arguments: '-c Release -o $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifact on Azure DevOps
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: Tapkey.FairOssShowcase.WebApp

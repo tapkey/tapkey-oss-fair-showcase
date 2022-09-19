@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Button_Ok" xml:space="preserve">
+    <value>Ok</value>
+    <comment>Result dialog OK button</comment>
+  </data>
+  <data name="Button_Submit" xml:space="preserve">
+    <value>Register</value>
+    <comment>Button to submit</comment>
+  </data>
+  <data name="Checkbox_Required" xml:space="preserve">
+    <value>Required</value>
+    <comment>ErrorText for checkbox</comment>
+  </data>
+  <data name="Dialog_CredentialId" xml:space="preserve">
+    <value>Your mobile OSS credential ID</value>
+    <comment>Title for credential ID</comment>
+  </data>
+  <data name="Dialog_Message_AlreadyRegistered" xml:space="preserve">
+    <value>Your mobile credential has been updated.</value>
+    <comment>Result dialog message when registration was already done before.</comment>
+  </data>
+  <data name="Dialog_Message_Fail" xml:space="preserve">
+    <value>Something went wrong when creating your credential. Please ask the booth owner for the assistance.</value>
+    <comment>Result dialog message when registration has failed</comment>
+  </data>
+  <data name="Dialog_Message_Success" xml:space="preserve">
+    <value>Your Mobile Credential has been issued. We sent you an email with more information.</value>
+    <comment>Result dialog message when registration was successfull</comment>
+  </data>
+  <data name="Dialog_TapkeyApp" xml:space="preserve">
+    <value>Install the Tapkey app on your smartphone to continue.</value>
+    <comment>Message appearing above the Google Play/App store buttons</comment>
+  </data>
+  <data name="Dialog_Title_AlreadyRegistered" xml:space="preserve">
+    <value>You're all set</value>
+    <comment>Result dialog title when registration was already done before.</comment>
+  </data>
+  <data name="Dialog_Title_Fail" xml:space="preserve">
+    <value>Ooops</value>
+    <comment>Result dialog title when registration has failed.</comment>
+  </data>
+  <data name="Dialog_Title_Success" xml:space="preserve">
+    <value>You're all set</value>
+    <comment>Result dialog title when registration was successful.</comment>
+  </data>
+  <data name="Label_Company" xml:space="preserve">
+    <value>Company</value>
+    <comment>Text field for "Company" in the form</comment>
+  </data>
+  <data name="Label_EmailAddress" xml:space="preserve">
+    <value>Email</value>
+    <comment>Text field for "Email Address in the form</comment>
+  </data>
+  <data name="Label_EmailAddress_Help" xml:space="preserve">
+    <value>Use this for signing in to the Tapkey app.</value>
+    <comment>Displayed below email text field as help for the users</comment>
+  </data>
+  <data name="Label_FirstName" xml:space="preserve">
+    <value>First name</value>
+    <comment>Text field for "First name" in the form</comment>
+  </data>
+  <data name="Label_LastName" xml:space="preserve">
+    <value>Last name</value>
+    <comment>Text field for "Last name" in the form</comment>
+  </data>
+  <data name="Label_PhoneNumber" xml:space="preserve">
+    <value>Phone</value>
+    <comment>Text field for "Phone number" in the form</comment>
+  </data>
+  <data name="Label_Position" xml:space="preserve">
+    <value>Position</value>
+    <comment>Text field for "Job position" in the form</comment>
+  </data>
+  <data name="Label_TermsAndConditions" xml:space="preserve">
+    <value>I agree that my personal data may be used in the context of this showcase and for marketing purposes. Read our full privacy policy</value>
+    <comment>Checkbox for "Terms and conditions"  in the form</comment>
+  </data>
+  <data name="Label_TermsAndConditions_Link" xml:space="preserve">
+    <value>here.</value>
+    <comment>Link in checkbox for "Terms and conditions" in the form</comment>
+  </data>
+  <data name="Label_TermsAndConditions_Link_Href" xml:space="preserve">
+    <value>https://tapkey.io/en/privacy-policy/</value>
+    <comment>Link in checkbox for "Terms and conditions" in the form</comment>
+  </data>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Tapkey OSS Mobile Access Demo</value>
+    <comment>Browser tab title</comment>
+  </data>
+  <data name="Subtitle" xml:space="preserve">
+    <value>Register here to receive a mobile credential on your smartphone and to get access to PHG and DOM devices on the Light + Building 2022.</value>
+    <comment>Subtitle text describing what is the goal of the form</comment>
+  </data>
+  <data name="Subtitle_Partnership" xml:space="preserve">
+    <value>in partnership with</value>
+  </data>
+  <data name="TextField_Error_EmptyOrWhitespace" xml:space="preserve">
+    <value>Fill in the information.</value>
+    <comment>Error below text field when the field is empty or whitespace.</comment>
+  </data>
+  <data name="TextField_Error_InvalidEmail" xml:space="preserve">
+    <value>Fill in a valid email address.</value>
+    <comment>Error below text field with email address when value is not a valid email.</comment>
+  </data>
+  <data name="TextField_Error_InvalidPhone" xml:space="preserve">
+    <value>Fill in a valid phone number.</value>
+    <comment>Error below text field with phone number when value is not a valid phone number.</comment>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Get your OSS Mobile Credential</value>
+    <comment>Catchy phrase to get attention</comment>
+  </data>
+</root>
