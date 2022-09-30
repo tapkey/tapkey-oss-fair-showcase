@@ -1,20 +1,8 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Introduction
+WebApp behind the Tapkey-OSS-MA demo showcased at the Light + Building 2022 Fair.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+The app offers a page that allows users to sign up for the demo. The registered data includes the user's email addresses. On submit an OSS Credential ID will be generated for the user. A mobile credential will be created for the user, giving access to preconfigured locking devices showcased at the fair.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+The app makes use of Tapkey's OSS Interface A implementation, which is available at https://ossapi.tapkey.io. At the time of publication, the standard has not been officially released, so the app is based on a preliminary version of the standard.
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+The showcase is available at https://ossdemo.tapkey.io.

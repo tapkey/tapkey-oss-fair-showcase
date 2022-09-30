@@ -1,0 +1,46 @@
+name: $(Date:yyyyMMdd-HHmm)$(Rev:.rr)
+parameters:
+  - name: env_dev
+    displayName: Deploy to development Environment
+    type: boolean
+    default: true
+  - name: env_prod
+    displayName: Deploy to production Environment
+    type: boolean
+    default: false
+resources:
+  pipelines:
+    - pipeline: FairShowcase
+      project: Tapkey
+      source: Build - Tapkey.FairOssShowcase.WebApp
+
+pool:
+  vmImage: 'windows-2022'
+steps:
+- checkout: none
+
+- download: FairShowcase
+  artifact: Tapkey.FairOssShowcase.WebApp
+  displayName: Download Package
+
+
+- task: AzureRmWebAppDeployment@4
+  displayName: Deploy AppService Package
+  condition: and(succeeded(), eq( '${{ parameters.env_dev }}', 'true'))
+  inputs:
+      ConnectionType: AzureRM
+      ConnectedServiceName: 'Tapkey OSS Demo'
+      DeploymentType: zipDeploy
+      WebAppName: tapkey-oss-demo-dev
+      Package: $(Pipeline.Workspace)/FairShowcase/Tapkey.FairOssShowcase.WebApp/*.zip
+
+- task: AzureRmWebAppDeployment@4
+  displayName: Deploy AppService Package
+  condition: and(succeeded(), eq( '${{ parameters.env_prod }}', 'true'))
+  inputs:
+      ConnectionType: AzureRM
+      ConnectedServiceName: 'Tapkey OSS Demo'
+      DeploymentType: zipDeploy
+      WebAppName: tapkey-oss-demo
+      Package: $(Pipeline.Workspace)/FairShowcase/Tapkey.FairOssShowcase.WebApp/*.zip
+

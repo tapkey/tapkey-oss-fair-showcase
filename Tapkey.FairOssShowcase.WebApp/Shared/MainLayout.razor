@@ -1,0 +1,31 @@
+﻿@using MudBlazor.ThemeManager
+@using Tapkey.FairOssShowcase.WebApp.Theme
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_themeManager.Theme" />
+<MudDialogProvider DisableBackdropClick="true" />
+
+<PageTitle>Tapkey.FairOssShowcase.WebApp</PageTitle>
+
+<div class="page">
+    <main>
+        <article class="content">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private ThemeManagerTheme _themeManager = new ThemeManagerTheme();
+
+    protected override void OnInitialized()
+    {
+        _themeManager.Theme = new TapkeyTheme();
+        _themeManager.DrawerClipMode = DrawerClipMode.Always;
+        _themeManager.FontFamily = "Montserrat";
+        _themeManager.DefaultBorderRadius = 3;
+        _themeManager.AppBarElevation = 4;
+        _themeManager.DrawerElevation = 25;
+        StateHasChanged();
+    }
+}
