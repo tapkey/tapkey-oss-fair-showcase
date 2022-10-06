@@ -10,7 +10,8 @@ namespace Tapkey.FairOssShowcase.Webapp
         public string TapkeyOssApiBaseUrl { get; set; }
         public string IdentityProviderId { get; set; }
         public Configuration Configuration { get; set; }
-        public DateTime Validity { get; set; }
+        public DateTime? Validity { get; set; }
+        public TimeSpan? ValidityDuration { get; set; }
         public int WeekBits { get; set; }
         public int ValidFromHour { get; set; }
         public int ValidBeforeHour { get; set; }
