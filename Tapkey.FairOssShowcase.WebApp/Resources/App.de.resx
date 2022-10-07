@@ -138,7 +138,7 @@
     <comment>Result dialog message when registration was already done before.</comment>
   </data>
   <data name="Dialog_Message_Fail" xml:space="preserve">
-    <value>Bei der Erstellung deines Credentials ist etwas schief gelaufen. Bitte frag beim Stand um Hilfe.</value>
+    <value>Bei der Erstellung deines Credentials ist etwas schief gelaufen.</value>
     <comment>Result dialog message when registration has failed</comment>
   </data>
   <data name="Dialog_Message_Success" xml:space="preserve">
@@ -206,7 +206,7 @@
     <comment>Browser tab title</comment>
   </data>
   <data name="Subtitle" xml:space="preserve">
-    <value>Registriere dich hier, um ein OSS Mobile Credential auf dein Smartphone zu bekommen und damit Zugang zu Geräten von DOM und PHG auf der Light + Building 2022 zu erhalten.</value>
+    <value>Registriere dich hier, um ein OSS Mobile Credential auf dein Smartphone zu bekommen und damit Zugang zu ausgewählten Geräten von DOM und PHG zu erhalten.</value>
     <comment>Subtitle text describing what is the goal of the form</comment>
   </data>
   <data name="Subtitle_Partnership" xml:space="preserve">

@@ -31,9 +31,8 @@ namespace Tapkey.FairOssShowcase.WebApp
                 IdentityProviderId = configuration.GetValue<string>("IdentityProviderId"),
             };
 
-            if (!DateTime.TryParse(configuration.GetValue<string>("Validity"), out DateTime validity))
-                throw new ArgumentException("Validity in configuration is not a valid datetime");
-            appConfig.Validity = validity;
+            appConfig.Validity = configuration.GetValue<DateTime?>("Validity")?.ToUniversalTime();
+            appConfig.ValidityDuration = configuration.GetValue<TimeSpan?>("ValidityDuration");
 
             if (!int.TryParse(configuration.GetValue<string>("ValidBeforeHour"), out int validBeforeHour))
                 throw new ArgumentException("ValidBeforeHour in configuration is not a number");

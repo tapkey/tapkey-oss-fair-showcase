@@ -63,7 +63,10 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
 
                 results.Add(mapIdentityResult);
 
-                var updateCredentialResult = await UpdateCredential(tapkeyOssApiClient, credentialId, ownerConfig.BoundLocks, _appConfig.Validity, _appConfig.WeekBits, _appConfig.ValidBeforeHour, _appConfig.ValidFromHour);
+                var validity = _appConfig.Validity 
+                    ?? DateTime.UtcNow.Add(_appConfig.ValidityDuration ?? TimeSpan.FromDays(1));
+
+                var updateCredentialResult = await UpdateCredential(tapkeyOssApiClient, credentialId, ownerConfig.BoundLocks, validity, _appConfig.WeekBits, _appConfig.ValidBeforeHour, _appConfig.ValidFromHour);
                 if (updateCredentialResult == CredentialResult.Failed)
                     return new RegisterUserResult() { CredentialResult = updateCredentialResult, CredentialId = shortenedCredentialIdHex };
             }
