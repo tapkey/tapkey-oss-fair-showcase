@@ -6,7 +6,7 @@ using Tapkey.FairOssShowcase.WebApp.Model;
 
 namespace Tapkey.FairOssShowcase.WebApp
 {
-    public class Utils
+    public static class Utils
     {
         public static bool IsValidEmail(string email) => new EmailAddressAttribute().IsValid(email);
 
@@ -19,6 +19,9 @@ namespace Tapkey.FairOssShowcase.WebApp
             var hexPartsToDisplay = credentialId.Take(4).Select(x => Convert.ToHexString(new byte[] {x})).ToArray();
             return string.Join(':', hexPartsToDisplay);
         }
+
+        public static DateTime FloorMinutes(this DateTime t)
+            => t.AddTicks(-(t.Ticks % TimeSpan.TicksPerMinute));
 
         public static AppConfig ParseAppConfig(ConfigurationManager configuration) 
         {
