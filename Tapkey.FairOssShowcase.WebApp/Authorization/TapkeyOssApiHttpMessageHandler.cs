@@ -1,17 +1,13 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using System.Net.Http.Headers;
-using System.Text;
+﻿using System.Net.Http.Headers;
 
 namespace Tapkey.FairOssShowcase.Webapp.Authorization
 {
     public class TapkeyOssApiHttpMessageHandler : DelegatingHandler
     {
-        private readonly IMemoryCache _memoryCache;
         private readonly AppConfig _appConfig;
 
-        public TapkeyOssApiHttpMessageHandler(IMemoryCache memoryCache, AppConfig appConfig)
+        public TapkeyOssApiHttpMessageHandler(AppConfig appConfig)
         {
-            _memoryCache = memoryCache;
             _appConfig = appConfig;
         }
 
@@ -19,27 +15,8 @@ namespace Tapkey.FairOssShowcase.Webapp.Authorization
            HttpRequestMessage request,
            CancellationToken cancellationToken)
         {
-            SetApiKey(request);
+            request.Headers.Authorization = new AuthenticationHeaderValue(AppConstants.OssApiKeyKey, _appConfig.ApiKey);
             return await base.SendAsync(request, cancellationToken);
-        }
-
-        private void SetApiKey(HttpRequestMessage request)
-        {
-            var apiKey = _memoryCache.Get<string>(AppConstants.OssApiKeyKey);
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                apiKey = GenerateApiKey();
-                _memoryCache.Set(AppConstants.OssApiKeyKey, apiKey);
-            }
-            
-            request.Headers.Authorization = new AuthenticationHeaderValue(AppConstants.OssApiKeyKey, apiKey);
-        }
-
-        private string GenerateApiKey()
-        {
-            var bytes = Encoding.UTF8.GetBytes($"{_appConfig.ClientId}:{_appConfig.ClientSecret}");
-            string base64Credentials = Convert.ToBase64String(bytes);
-            return $"Basic {base64Credentials}";
         }
     }
 }

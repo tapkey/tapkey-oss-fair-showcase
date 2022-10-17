@@ -27,8 +27,7 @@ namespace Tapkey.FairOssShowcase.WebApp
         {
             var appConfig = new AppConfig()
             {
-                ClientId = configuration.GetValue<string>("ClientId"),
-                ClientSecret = configuration.GetValue<string>("ClientSecret"),
+                ApiKey = configuration.GetValue<string>("ApiKey"),
                 TapkeyOssApiBaseUrl = configuration.GetValue<string>("TapkeyOssApiBaseUrl"),
                 TenantId = configuration.GetValue<string>("TenantId"),
                 IdentityProviderId = configuration.GetValue<string>("IdentityProviderId"),
