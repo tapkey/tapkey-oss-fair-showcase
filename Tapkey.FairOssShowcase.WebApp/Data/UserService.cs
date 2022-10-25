@@ -142,7 +142,14 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
                     }
                 };
 
-                var updateCredentialResponse = await tapkeyOssApiClient.UpdateCredentialAsync(updateCredentialRequest);
+                OssUpdateCredentialSyncResponse updateCredentialResponse;
+
+                // In case of PartialResult returned we need to execute the same request until a final response code is returned
+                do
+                {
+                    updateCredentialResponse = await tapkeyOssApiClient.UpdateCredentialAsync(updateCredentialRequest);
+                }
+                while (updateCredentialResponse.Status.Code == StatusCode.PartialResult);
 
                 if (updateCredentialResponse.Status.Code != StatusCode.Ok && updateCredentialResponse.Status.Code != StatusCode.NothingToDo)
                 {
