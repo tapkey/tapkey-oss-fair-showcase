@@ -51,11 +51,12 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
 
             List<CredentialResult> results = new List<CredentialResult>();
 
-            foreach (var ownerConfig in _appConfig.Configuration.OwnerConfigs)
+            foreach (var ossConfig in _appConfig.Configuration.OssConfigurations)
             {
-                var httpClient = _httpClientFactory.CreateClient(Utils.GetTapkeyOssApiClientId(ownerConfig.OwnerAccountId));
-                var tapkeyOssApiClient = new TapkeyOssApiClient(httpClient);
-                var mapIdentityResult = await MapIdentity(tapkeyOssApiClient, credentialId, user.Email, _appConfig.IdentityProviderId);
+                var httpClient = _httpClientFactory.CreateClient(AppConstants.OssApiClient);
+                httpClient.BaseAddress = new Uri(ossConfig.OssBaseUrl + (ossConfig.OssBaseUrl.EndsWith("/") ? "" : "/"));
+                var ossApiClient = new OssApiClient.OssApiClient(httpClient);
+                var mapIdentityResult = await MapIdentity(ossApiClient, credentialId, user.Email, _appConfig.IdentityProviderId);
                 if (mapIdentityResult == CredentialResult.Failed)
                 {
                     return new RegisterUserResult() { CredentialResult = mapIdentityResult, CredentialId = shortenedCredentialIdHex };
@@ -66,7 +67,7 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
                 var validity = _appConfig.Validity
                     ?? DateTime.UtcNow.Add(_appConfig.ValidityDuration ?? TimeSpan.FromDays(1)).FloorMinutes();
 
-                var updateCredentialResult = await UpdateCredential(tapkeyOssApiClient, credentialId, ownerConfig.BoundLocks, validity, _appConfig.WeekBits, _appConfig.ValidBeforeHour, _appConfig.ValidFromHour);
+                var updateCredentialResult = await UpdateCredential(ossApiClient, credentialId, ossConfig.Doors, validity, _appConfig.WeekBits, _appConfig.ValidBeforeHour, _appConfig.ValidFromHour);
                 if (updateCredentialResult == CredentialResult.Failed)
                     return new RegisterUserResult() { CredentialResult = updateCredentialResult, CredentialId = shortenedCredentialIdHex };
             }
@@ -88,9 +89,9 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
             return new RegisterUserResult() { CredentialId = shortenedCredentialIdHex, CredentialResult = callResult };
         }
 
-        private async Task<CredentialResult> UpdateCredential(TapkeyOssApiClient tapkeyOssApiClient, byte[]? credentialId, BoundLockConfiguration[] boundLockConfig, DateTime validity, int weekBits, int validBeforeHour, int validFromHour)
+        private async Task<CredentialResult> UpdateCredential(IOssApiClient ossApiClient, byte[]? credentialId, DoorConfiguration[] doorConfig, DateTime validity, int weekBits, int validBeforeHour, int validFromHour)
         {
-            var groupedBySiteId = boundLockConfig.GroupBy(blc => blc.SiteId).ToDictionary(blcs => blcs.Key, blcs => blcs.ToList());
+            var groupedBySiteId = doorConfig.GroupBy(blc => blc.SiteId).ToDictionary(blcs => blcs.Key, blcs => blcs.ToList());
 
             foreach (var siteIdLocks in groupedBySiteId)
             {
@@ -147,7 +148,7 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
                 // In case of PartialResult returned we need to execute the same request until a final response code is returned
                 do
                 {
-                    updateCredentialResponse = await tapkeyOssApiClient.UpdateCredentialAsync(updateCredentialRequest);
+                    updateCredentialResponse = await ossApiClient.UpdateCredentialAsync(updateCredentialRequest);
                 }
                 while (updateCredentialResponse.Status.Code == StatusCode.PartialResult);
 
@@ -163,7 +164,7 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
             return CredentialResult.Ok;
         }
 
-        private async Task<CredentialResult> MapIdentity(TapkeyOssApiClient tapkeyOssApiClient, byte[] credentialId, string email, string identityProviderId)
+        private async Task<CredentialResult> MapIdentity(IOssApiClient ossApiClient, byte[] credentialId, string email, string identityProviderId)
         {
             var mapIdentityRequest = new OssMapIdentitySyncRequest()
             {
@@ -178,7 +179,7 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
                 }
             };
 
-            var mapIdentityResponse = await tapkeyOssApiClient.MapIdentityAsync(mapIdentityRequest);
+            var mapIdentityResponse = await ossApiClient.MapIdentityAsync(mapIdentityRequest);
 
             if (mapIdentityResponse.Status.Code == StatusCode.NothingToDo)
             {

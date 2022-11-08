@@ -12,8 +12,6 @@ namespace Tapkey.FairOssShowcase.WebApp
 
         public static bool IsValidPhoneNumber(string phoneNumber) => Regex.IsMatch(phoneNumber, @"^(\+|00)?[0-9 \-\(\)\.]+$");
 
-        public static string GetTapkeyOssApiClientId(string ownerAccountId) => $"{AppConstants.TapkeyOssApiClient}{ownerAccountId}";
-
         public static string GetUserHexFromCredentialId(byte[] credentialId)
         {
             var hexPartsToDisplay = credentialId.Take(4).Select(x => Convert.ToHexString(new byte[] {x})).ToArray();
@@ -28,8 +26,6 @@ namespace Tapkey.FairOssShowcase.WebApp
             var appConfig = new AppConfig()
             {
                 ApiKey = configuration.GetValue<string>("ApiKey"),
-                TapkeyOssApiBaseUrl = configuration.GetValue<string>("TapkeyOssApiBaseUrl"),
-                TenantId = configuration.GetValue<string>("TenantId"),
                 IdentityProviderId = configuration.GetValue<string>("IdentityProviderId"),
             };
 

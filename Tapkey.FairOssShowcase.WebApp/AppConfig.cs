@@ -5,8 +5,6 @@ namespace Tapkey.FairOssShowcase.Webapp
     public class AppConfig
     {
         public string ApiKey { get; set; }
-        public string TenantId { get; set; }
-        public string TapkeyOssApiBaseUrl { get; set; }
         public string IdentityProviderId { get; set; }
         public Configuration Configuration { get; set; }
         public DateTime? Validity { get; set; }
