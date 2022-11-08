@@ -68,21 +68,28 @@ namespace Tapkey.FairOssShowcase.WebApp
 
             appConfig.FairTitle = configuration.GetValue<string>("FairTitle");
             appConfig.ZendeskEnabled = configuration.GetValue<bool>("Zendesk_Enabled");
-            appConfig.ZendeskUrl = configuration.GetValue<string>("Zendesk_Url");
-            appConfig.ZendeskUser = configuration.GetValue<string>("Zendesk_User");
-            appConfig.ZendeskApiToken = configuration.GetValue<string>("Zendesk_API_Token");
-            appConfig.ZendeskLocale = configuration.GetValue<string>("Zendesk_Locale");
+            if (appConfig.ZendeskEnabled)
+            {
+                appConfig.ZendeskUrl = configuration.GetValue<string>("Zendesk_Url");
+                appConfig.ZendeskUser = configuration.GetValue<string>("Zendesk_User");
+                appConfig.ZendeskApiToken = configuration.GetValue<string>("Zendesk_API_Token");
+                appConfig.ZendeskLocale = configuration.GetValue<string>("Zendesk_Locale");
 
-            if (!long.TryParse(configuration.GetValue<string>("Zendesk_AssigneeId"), out long zendeskAssigneeId))
-                throw new ArgumentException("Zendesk_AssigneeId in configuration is not a number");
+                if (!long.TryParse(configuration.GetValue<string>("Zendesk_AssigneeId"), out long zendeskAssigneeId))
+                    throw new ArgumentException("Zendesk_AssigneeId in configuration is not a number");
 
-            appConfig.ZendeskAssigneeId = zendeskAssigneeId;
+                appConfig.ZendeskAssigneeId = zendeskAssigneeId;
+            }
 
             appConfig.SparkPostEnabled = configuration.GetValue<bool>("SparkPost_Enabled");
-            appConfig.SparkPostClientId = configuration.GetValue<string>("SparkPost_ClientId");
-            appConfig.SparkPostHost = configuration.GetValue<string>("SparkPost_Host");
-            appConfig.SparkPostTemplateEn = configuration.GetValue<string>("SparkPost_Template_OSSDemoGrantCreated_En");
-            appConfig.SparkPostTemplateDe = configuration.GetValue<string>("SparkPost_Template_OSSDemoGrantCreated_De");
+
+            if (appConfig.SparkPostEnabled)
+            {
+                appConfig.SparkPostClientId = configuration.GetValue<string>("SparkPost_ClientId");
+                appConfig.SparkPostHost = configuration.GetValue<string>("SparkPost_Host");
+                appConfig.SparkPostTemplateEn = configuration.GetValue<string>("SparkPost_Template_OSSDemoGrantCreated_En");
+                appConfig.SparkPostTemplateDe = configuration.GetValue<string>("SparkPost_Template_OSSDemoGrantCreated_De");
+            }
 
             return appConfig;
         }

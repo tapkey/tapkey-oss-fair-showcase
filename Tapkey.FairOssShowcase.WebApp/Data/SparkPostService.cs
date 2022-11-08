@@ -22,9 +22,13 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
         {
             _appConfig = appConfig;
             _logger = logger;
-            _sparkPostClient = new Client(_appConfig.SparkPostClientId, _appConfig.SparkPostHost);
-            _templates.Add(EnLanguage, _appConfig.SparkPostTemplateEn);
-            _templates.Add(DeLanguage, _appConfig.SparkPostTemplateDe);
+
+            if (_appConfig.SparkPostEnabled)
+            {
+                _sparkPostClient = new Client(_appConfig.SparkPostClientId, _appConfig.SparkPostHost);
+                _templates.Add(EnLanguage, _appConfig.SparkPostTemplateEn);
+                _templates.Add(DeLanguage, _appConfig.SparkPostTemplateDe);
+            }
         }
 
         public async Task<bool> SendMessage(User user,string credentialId)
