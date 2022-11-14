@@ -3,6 +3,7 @@ using Tapkey.FairOssShowcase.Webapp;
 using Tapkey.FairOssShowcase.Webapp.Authorization;
 using Tapkey.FairOssShowcase.WebApp;
 using Tapkey.FairOssShowcase.WebApp.Data;
+using Tapkey.OssApiClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,15 +16,9 @@ builder.Services.AddMemoryCache();
 var appConfig = Utils.ParseAppConfig(builder.Configuration);
 
 builder.Services.AddSingleton(appConfig);
-builder.Services.AddScoped<TapkeyOssApiHttpMessageHandler>();
+builder.Services.AddScoped<OssApiHttpMessageHandler>();
 
-foreach (var ownerConfig in appConfig.Configuration.OwnerConfigs)
-{
-    builder.Services.AddHttpClient(Utils.GetTapkeyOssApiClientId(ownerConfig.OwnerAccountId), client =>
-    {
-        client.BaseAddress = new Uri($"{appConfig.TapkeyOssApiBaseUrl}{AppConstants.ApiVersionPrefix}/{appConfig.TenantId}/{ownerConfig.OwnerAccountId}/");
-    }).AddHttpMessageHandler<TapkeyOssApiHttpMessageHandler>();
-}
+builder.Services.AddHttpClient(AppConstants.OssApiClient).AddHttpMessageHandler<OssApiHttpMessageHandler>();
 
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<ZendeskService>();

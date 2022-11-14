@@ -13,7 +13,10 @@ namespace Tapkey.FairOssShowcase.WebApp.Data
         public ZendeskService(AppConfig appConfig)
         {
             _appConfig = appConfig;
-            _zendeskApi = new ZendeskApi(_appConfig.ZendeskUrl, _appConfig.ZendeskUser, _appConfig.ZendeskApiToken, _appConfig.ZendeskLocale);
+            if (_appConfig.ZendeskEnabled)
+            {
+                _zendeskApi = new ZendeskApi(_appConfig.ZendeskUrl, _appConfig.ZendeskUser, _appConfig.ZendeskApiToken, _appConfig.ZendeskLocale);
+            }
         }
 
         public async Task<bool> CreateZendeskTicket(User user)

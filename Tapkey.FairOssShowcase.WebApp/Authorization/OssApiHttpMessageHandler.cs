@@ -2,11 +2,11 @@
 
 namespace Tapkey.FairOssShowcase.Webapp.Authorization
 {
-    public class TapkeyOssApiHttpMessageHandler : DelegatingHandler
+    public class OssApiHttpMessageHandler : DelegatingHandler
     {
         private readonly AppConfig _appConfig;
 
-        public TapkeyOssApiHttpMessageHandler(AppConfig appConfig)
+        public OssApiHttpMessageHandler(AppConfig appConfig)
         {
             _appConfig = appConfig;
         }

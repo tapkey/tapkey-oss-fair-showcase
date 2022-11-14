@@ -46,7 +46,7 @@
       "generateModelValidationAttributes": false,
       "routeNamingStrategy": "None",
       "basePath": null,
-      "className": "TapkeyOssApiClient{controller}",
+      "className": "OssApiClient{controller}",
       "operationGenerationMode": "MultipleClientsFromOperationId",
       "additionalNamespaceUsages": [],
       "additionalContractNamespaceUsages": [],
@@ -99,7 +99,7 @@
       "checksumCacheEnabled": false,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "generated/TapkeyOssApiClient.cs",
+      "output": "generated/OssApiClient.cs",
       "newLineBehavior": "Auto"
     }
   }

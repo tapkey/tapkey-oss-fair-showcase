@@ -2,6 +2,6 @@
 {
     public class Configuration
     {
-        public OwnerConfiguration[] OwnerConfigs { get; set; }
+        public OssConfiguration[] OssConfigurations { get; set; }
     }
 }
